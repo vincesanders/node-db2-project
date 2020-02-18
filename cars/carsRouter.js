@@ -18,7 +18,7 @@ router.get('/:id', validateCarId, (req, res) => {
     res.status(200).json(req.car);
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateCar, (req, res) => {
     db('cars').insert(req.body).then(ids => {
         getByID(ids[0]).then(cars => {
             res.status(201).json(cars[0]);
@@ -30,7 +30,7 @@ router.post('/', (req, res) => {
     });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateCarId, (req, res) => {
     db('cars').where({ id: req.params.id }).update(req.body).then(numChanged => {
         getByID(req.params.id).then(cars => {
             res.status(200).json(cars[0]);
@@ -42,17 +42,9 @@ router.put('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
-    let deletedCar;
-
-    getByID(req.params.id).then(cars => {
-        deletedCar = cars[0];
-    }).catch(err => {
-        res.status(500).json({ error: 'Unable to retrieve the car you requested.' });
-    });
-
+router.delete('/:id', validateCarId, (req, res) => {
     db('cars').where({ id: req.params.id }).del().then(numDeleted => {
-        res.status(200).json(deletedCar);
+        res.status(200).json(req.car);
     }).catch(err => {
         res.status(500).json({ error: 'Unable to delete car.' });
     });
@@ -73,6 +65,16 @@ function validateCarId(req, res, next) {
     }).catch(err => {
         errorHandler(err, 500, "The car's information could not be retrieved.");
     });
+}
+
+function validateCar(req, res, next) {
+    if (!req.body) {
+        res.status(400).json({ message: "missing car data" });
+    } else if (!req.body.vin || !req.body.make || !req.body.model || !req.body.mileage) {
+        res.status(400).json({ message: "Please include vin, make, model and mileage fields." });
+    } else {
+        next();
+    }
 }
 
 module.exports = router;
