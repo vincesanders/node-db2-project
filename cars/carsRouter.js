@@ -46,6 +46,22 @@ router.put('/:id', (req, res) => {
     });
 });
 
+router.delete('/:id', (req, res) => {
+    let deletedCar;
+
+    getByID(req.params.id).then(cars => {
+        deletedCar = cars[0];
+    }).catch(err => {
+        res.status(500).json({ error: 'Unable to retrieve the car you requested.' });
+    });
+
+    db('cars').where({ id: req.params.id }).del().then(numDeleted => {
+        res.status(200).json(deletedCar);
+    }).catch(err => {
+        res.status(500).json({ error: 'Unable to delete car.' });
+    });
+});
+
 function getByID(id) {
     return db('cars').where({ id: id });
 }
