@@ -34,9 +34,20 @@ router.post('/', (req, res) => {
     });
 });
 
+router.put('/:id', (req, res) => {
+    db('cars').where({ id: req.params.id }).update(req.body).then(numChanged => {
+        getByID(req.params.id).then(cars => {
+            res.status(200).json(cars[0]);
+        }).catch(err => {
+            res.status(500).json({ error: 'Unable to retrieve the car that was just updated.\nCheck inventory to ensure it was updated correctly.' });
+        });
+    }).catch(err => {
+        res.status(500).json({ error: 'Unable to update car.' });
+    });
+});
+
 function getByID(id) {
     return db('cars').where({ id: id });
 }
-
 
 module.exports = router;
