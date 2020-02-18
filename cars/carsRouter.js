@@ -30,7 +30,7 @@ router.post('/', validateCar, (req, res) => {
     });
 });
 
-router.put('/:id', validateCarId, (req, res) => {
+router.put('/:id', validatePut, validateCarId, (req, res) => {
     db('cars').where({ id: req.params.id }).update(req.body).then(numChanged => {
         getByID(req.params.id).then(cars => {
             res.status(200).json(cars[0]);
@@ -74,6 +74,17 @@ function validateCar(req, res, next) {
         res.status(400).json({ message: "Please include vin, make, model and mileage fields." });
     } else {
         next();
+    }
+}
+
+function validatePut(req, res, next) {
+    if (!req.body) {
+        res.status(400).json({ message: "missing car data. Nothing to update." });
+        //check that at least one of the fields is included in the body.
+    } else if (req.body.vin || req.body.make || req.body.model || req.body.mileage || req.body.transmission || req.body.titlestatus) {
+        next();
+    } else {
+        res.status(400).json({ message: "Please include vin, make, model, mileage, transmission or title status fields.\nNothing to update." });
     }
 }
 
