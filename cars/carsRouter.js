@@ -14,12 +14,8 @@ router.get('/', (req, res) => {
     })
 });
 
-router.get('/:id', (req, res) => {
-    getByID(req.params.id).then(cars => {
-        res.status(201).json(cars[0]);
-    }).catch(err => {
-        res.status(500).json({ error: 'Unable to retrieve the car you requested.' });
-    });
+router.get('/:id', validateCarId, (req, res) => {
+    res.status(200).json(req.car);
 });
 
 router.post('/', (req, res) => {
@@ -64,6 +60,19 @@ router.delete('/:id', (req, res) => {
 
 function getByID(id) {
     return db('cars').where({ id: id });
+}
+
+function validateCarId(req, res, next) {
+    getByID(req.params.id).then(car => {
+        if (!car) {
+            res.status(400).json({ message: "invalid car id" });
+        } else {
+        req.car = car;
+        next();
+        }
+    }).catch(err => {
+        errorHandler(err, 500, "The car's information could not be retrieved.");
+    });
 }
 
 module.exports = router;
